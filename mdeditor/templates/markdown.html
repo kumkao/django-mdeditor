@@ -47,8 +47,20 @@
 {% endif %}
 <script type="text/javascript">
 
-    $(function () {
-        editormd("{{ id }}-wmd-wrapper", {
+    function makeid(length) {
+        let result = '';
+        const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+        const charactersLength = characters.length;
+        let counter = 0;
+        while (counter < length) {
+          result += characters.charAt(Math.floor(Math.random() * charactersLength));
+          counter += 1;
+        }
+        return result;
+    }
+
+    function initMDEditorPlugin (id) {
+        editormd(id, {
             watch: {{ config.watch|lower }}, // 关闭实时预览
             lineNumbers: {{ config.lineNumbers|lower }},
             lineWrapping: {{ config.lineWrapping|lower }},
@@ -99,58 +111,22 @@
                 //this.height(480);
                 //this.resize("100%", 640);
             }
-        });
-        // workaround for admin inline
-        editormd("{{ id }}-wmd-wrapper", {
-            watch: {{ config.watch|lower }}, // 关闭实时预览
-            lineNumbers: {{ config.lineNumbers|lower }},
-            lineWrapping: {{ config.lineWrapping|lower }},
-            width: "{{ config.width }}",
-            height: {{ config.height }},
-            placeholder: '{{ config.placeholder }}',
-            // 当有多个mdeditor时，全屏后，其他mdeditor仍然显示，解决此问题。
-            onfullscreen : function() {
-                this.editor.css("border-radius", 0).css("z-index", 9999);
-            },
-            onfullscreenExit : function() {
-                this.editor.css({
-                    zIndex : 10,
-                    border : "1px solid rgb(221,221,221)"
-                })
-            },
-            syncScrolling: "single",
-            path: "{% static  'mdeditor/js/lib/' %}",
-            // theme
-            theme : "{{ config.theme|safe }}",
-            previewTheme : "{{ config.preview_theme|safe }}",
-            editorTheme : "{{ config.editor_theme }}",
+        })
+    }
+    $(function () {
+        initMDEditorPlugin('{{ id }}-wmd-wrapper');
 
-            saveHTMLToTextarea: true, // editor.md 有问题没有测试成功
-            toolbarAutoFixed: {{ config.toolbar_autofixed|lower }},
-            searchReplace: {{ config.search_replace|lower }},
-            emoji: {{ config.emoji|lower }},
-            tex: {{ config.tex|lower }},
-            taskList: {{ config.task_list|lower }},
-            flowChart: {{ config.flow_chart|lower }},
-            sequenceDiagram: {{ config.sequence|lower }},
-
-            // image upload
-            imageUpload: true,
-            imageFormats: {{ config.upload_image_formats|safe }},
-            imageUploadURL: "{{ config.upload_image_url }}",
-            toolbarIcons: function () {
-                return {{ config.toolbar|safe }}
-            },
-            onload: function () {
-                console.log('onload', this);
-                //this.fullscreen();
-                //this.unwatch();
-                //this.watch().fullscreen();
-
-                //this.setMarkdown("#PHP");
-                //this.width("100%");
-                //this.height(480);
-                //this.resize("100%", 640);
+        $(document).bind('DOMNodeInserted', function(e) {
+            if (e.target.classList.contains('djn-item')) {
+                var mdEditors = $(e.target).find('.wmd-wrapper')
+                if (mdEditors.length > 0) {
+                    mdEditors.each(function () {
+                        if (this.id.includes('__prefix__')) {
+                            this.id = this.id.replace('__prefix__', makeid(8))
+                            initMDEditorPlugin(this.id)
+                        }
+                    })
+                }
             }
         });
     });

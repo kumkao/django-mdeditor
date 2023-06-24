@@ -6,8 +6,6 @@ from django.template.loader import render_to_string
 from django.utils.encoding import force_text
 from django.utils.html import conditional_escape
 from django.utils.safestring import mark_safe
-import random
-import string
 
 try:
     # Django >=1.7
@@ -19,18 +17,13 @@ except ImportError:
 from .configs import MDConfig
 
 
-def generate_random_text(length):
-    characters = string.ascii_letters + string.digits
-    random_text = ''.join(random.choice(characters) for _ in range(length))
-    return random_text
-
-
 class MDEditorWidget(forms.Textarea):
     """
     Widget providing Editor.md for Rich Text Editing.
     see Editor.md docs: https://pandao.github.io/editor.md/examples/index.html
     """
-    def __init__(self, config_name='default', *args, **kwargs):
+
+    def __init__(self, config_name="default", *args, **kwargs):
         super(MDEditorWidget, self).__init__(*args, **kwargs)
         # Setup config from defaults.
         self.config = MDConfig(config_name)
@@ -40,15 +33,20 @@ class MDEditorWidget(forms.Textarea):
         renderer: django2.1 新增加的参数，此处不做应用，赋值None做兼容处理
         """
         if value is None:
-            value = ''
+            value = ""
 
         final_attrs = self.build_attrs(self.attrs, attrs, name=name)
-        return mark_safe(render_to_string('markdown.html', {
-            'final_attrs': flatatt(final_attrs),
-            'value': conditional_escape(force_text(value)),
-            'id': generate_random_text(10) + '_' + final_attrs['id'],
-            'config': self.config,
-        }))
+        return mark_safe(
+            render_to_string(
+                "markdown.html",
+                {
+                    "final_attrs": flatatt(final_attrs),
+                    "value": conditional_escape(force_text(value)),
+                    "id": final_attrs["id"],
+                    "config": self.config,
+                },
+            )
+        )
 
     def build_attrs(self, base_attrs, extra_attrs=None, **kwargs):
         """
@@ -62,11 +60,11 @@ class MDEditorWidget(forms.Textarea):
 
     def _get_media(self):
         return forms.Media(
-            css={
-                "all": ("mdeditor/css/editormd.css",)
-            },
+            css={"all": ("mdeditor/css/editormd.css",)},
             js=(
                 "mdeditor/js/jquery.min.js",
                 "mdeditor/js/editormd.min.js",
-            ))
+            ),
+        )
+
     media = property(_get_media)
