@@ -6,6 +6,8 @@ from django.template.loader import render_to_string
 from django.utils.encoding import force_text
 from django.utils.html import conditional_escape
 from django.utils.safestring import mark_safe
+import random
+import string
 
 try:
     # Django >=1.7
@@ -15,6 +17,12 @@ except ImportError:
     from django.forms.util import flatatt
 
 from .configs import MDConfig
+
+
+def generate_random_text(length):
+    characters = string.ascii_letters + string.digits
+    random_text = ''.join(random.choice(characters) for _ in range(length))
+    return random_text
 
 
 class MDEditorWidget(forms.Textarea):
@@ -38,7 +46,7 @@ class MDEditorWidget(forms.Textarea):
         return mark_safe(render_to_string('markdown.html', {
             'final_attrs': flatatt(final_attrs),
             'value': conditional_escape(force_text(value)),
-            'id': final_attrs['id'],
+            'id': generate_random_text(10) + '_' + final_attrs['id'],
             'config': self.config,
         }))
 
